@@ -16,30 +16,47 @@ def split_secret(secret, k, n):
     k is the minimum number of keys to get the secret back
     n is the total number of keys generated
     '''
-    D = []
+    #Create two empty lists and a dictionary
+    D = {}
     A = []
     B = []
+    
+    #Set A0 to be the secret, as defined a0 = D
     A.append(int(secret))
+
+    #Fill the rest of the list A, from A1 to An, with 
+    #random numbers, as defined in paper "we pick a random
+    # k-1 polynomial"
     for j in range(1,n):
         A.append(random.randrange(1,100))
 
+    #Evaluate each polynomial, q(i)
     for i in range(1,n+1):
+        #First item is A0
         B.append(A[0])
+        #Every other item is evaluated by substituting x 
         for j in range(1,k):
             B.append(A[j]*i**j)
-        D.append(sum(B))
-        B = []
-    
-    S = {}
-    for y in range(len(D)):
-        S[y] = D[y]
-    print('Keys:',S)
-    return S
+        #Sum all the polynomial terms, save sum as Di
+        #these are your keys
+        D[i] = sum(B)
+
+        B = []  #reset B in order to use again empty 
+
+    return D
 
 def get_secret(k,keys):
+    ''' 
+    k is the number of keys you are supplying
+    ''' 
+
+    #Create 3 empty lists
     A = []
     D = []
     C = []
+    
+    #Re-create the polynomials to solve
+    # for the coefficients 
     for i in range(1,k+2):
         C.append(1)
         for j in range(1,k+1):
@@ -47,10 +64,14 @@ def get_secret(k,keys):
         A.append(C)
         D.append(keys[i-1])
         C = []
+
+    #Solve Ax = D
+    # x are our coeeficients(a0 to an)
     a = np.array(A)
     d = np.array(D)
     x = np.linalg.solve(a,d)
 
+    #The original Secret is a0
     return int(x[0])
 
 if __name__ == '__main__':
